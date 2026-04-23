@@ -1,0 +1,4 @@
+Clapeyron Database File
+SAFTgammaMie Parameters [csvtype = assoc, grouptype = unknown]
+species1,species2,site1,site2,epsilon_assoc,bondvol
+cCHOH,cCHOH,H,e1,2902.9512949144437,1.3506192360393313e-28
