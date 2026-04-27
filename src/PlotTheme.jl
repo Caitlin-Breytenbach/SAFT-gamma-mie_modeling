@@ -1,0 +1,272 @@
+module PlotTheme
+ 
+using CairoMakie, Colors
+ 
+export apply_theme!, PALETTE, line_colour, EXP_COLOR, LINEWIDTH, MARKERSIZE, FONTSIZE
+export plot_saturation_pressure, plot_VLE_envelope, plot_enthalpy_vap
+export plot_Pxy, plot_binary_property
+export exp_scatter!, model_line!, crit_point!
+
+const PALETTE = [
+    colorant"#4878CF",   # blue
+    colorant"#D65F5F",   # red
+    colorant"#6ACC65",   # green
+    colorant"#B47CC7",   # purple
+    colorant"#F0A30A",   # amber  
+    colorant"#3BBDBD",   # teal   
+]
+ 
+const EXP_COLOR  = colorant"#222222"
+const LINEWIDTH  = 2.0
+const MARKERSIZE = 10.0
+const FONTSIZE   = 14
+
+function line_colour(names::Vector{String})
+    Dict(name => PALETTE[mod1(i, length(PALETTE))] for (i, name) in enumerate(names))    
+end
+
+function apply_theme!()
+    update_theme!(
+        fonts    = Attributes(
+            regular = "TeX Gyre Heros",
+            bold    = "TeX Gyre Heros Bold",
+        ),
+        fontsize = FONTSIZE,
+        Axis = (
+            spinewidth         = 1.2,
+            xgridvisible       = false,
+            ygridvisible       = false,
+            xminorticksvisible = true,
+            yminorticksvisible = true,
+            xminorticksize     = 3,
+            yminorticksize     = 3,
+            xticksize          = 5,
+            yticksize          = 5,
+            xtickwidth         = 1.2,
+            ytickwidth         = 1.2,
+            rightspinevisible  = false,
+            topspinevisible    = false,
+            xlabelsize         = FONTSIZE,
+            ylabelsize         = FONTSIZE,
+            xticklabelsize     = FONTSIZE - 2,
+            yticklabelsize     = FONTSIZE - 2,
+        ),
+        Legend = (
+            framevisible = false,
+            labelsize    = FONTSIZE - 1,
+            patchsize    = (20, 2),
+            rowgap       = 2,
+        ),
+    )
+end
+
+function model_line!(ax, x, y; name::String, colors::Dict, kwargs...)
+    lines!(ax, x, y;
+        color     = get(colors, name, PALETTE[1]),
+        linewidth = LINEWIDTH,
+        label     = name,
+        kwargs...)
+end
+
+function exp_scatter!(ax, x, y; label="Experiment", kwargs...)
+    scatter!(ax, x, y;
+        color       = EXP_COLOR,
+        marker      = :circle,
+        markersize  = MARKERSIZE,
+        strokewidth = 1.,
+        strokecolor = :black,
+        label       = label,
+        kwargs...)
+end
+
+function crit_point!(ax, x, y; name::String, colors::Dict, marker=:circle)
+    scatter!(ax, [x], [y];
+        color       = get(colors, name, PALETTE[1]),
+        marker      = marker,
+        markersize  = MARKERSIZE + 3,
+        strokewidth = 1.0,
+        strokecolor = :white)
+end
+
+function plot_saturation_pressure(
+    model_curves::Dict, model_crits::Dict;
+    exp_T, exp_p,
+    exp_crit = nothing,
+    Tlims    = (nothing, nothing),
+    size     = (500, 420),
+)
+    names  = collect(keys(model_curves))
+    colors = line_colour(names)
+ 
+    fig = Figure(; size)
+    ax  = Axis(fig[1,1];
+        xlabel = "Temperature / K",
+        ylabel = "log₁₀(Pressure / Pa)",
+        limits = (Tlims, nothing),
+    )
+ 
+    for name in names
+        c      = model_curves[name]
+        Tc, pc = model_crits[name]
+        model_line!(ax, c.T, log10.(c.p); name, colors)
+        crit_point!(ax, Tc, log10(pc); name, colors)
+    end
+ 
+    exp_scatter!(ax, exp_T, log10.(exp_p))
+    if !isnothing(exp_crit)
+        scatter!(ax, [exp_crit[1]], [log10(exp_crit[2])];
+            color=EXP_COLOR, marker=:star5, markersize=MARKERSIZE+4,
+            strokewidth=0.5, strokecolor=:white)
+    end
+ 
+    Legend(fig[1,2], ax)
+    return fig
+end
+
+function plot_VLE_envelope(
+    model_curves::Dict, model_crits::Dict;
+    exp_rhol_T, exp_rhol,
+    exp_rhov_T, exp_rhov,
+    Tlims = (nothing, nothing),
+    size  = (500, 420),
+)
+    names  = collect(keys(model_curves))
+    colors = line_colour(names)
+ 
+    fig = Figure(; size)
+    ax  = Axis(fig[1,1];
+        xlabel = "Density / (mol dm⁻³)",
+        ylabel = "Temperature / K",
+        limits = (nothing, Tlims),
+    )
+ 
+    for name in names
+        c          = model_curves[name]
+        Tc, pc, vc = model_crits[name]
+        col        = get(colors, name, PALETTE[1])
+        lines!(ax, 1e-3 ./ c.vl, c.T; color=col, linewidth=LINEWIDTH, label=name)
+        lines!(ax, 1e-3 ./ c.vv, c.T; color=col, linewidth=LINEWIDTH)
+        crit_point!(ax, 1e-3/vc, Tc; name, colors)
+    end
+ 
+    exp_scatter!(ax, exp_rhol .* 1e-3, exp_rhol_T)
+    exp_scatter!(ax, exp_rhov .* 1e-3, exp_rhov_T; label="")   # no duplicate legend entry
+ 
+    Legend(fig[1,2], ax)
+    return fig
+end
+
+function plot_enthalpy_vap(
+    model_curves::Dict, model_crits::Dict;
+    exp_T, exp_hvap,
+    size = (500, 420),
+)
+    names  = collect(keys(model_curves))
+    colors = line_colour(names)
+ 
+    fig = Figure(; size)
+    ax  = Axis(fig[1,1];
+        xlabel = "Temperature / K",
+        ylabel = "Enthalpy of vaporisation / (kJ mol⁻¹)",
+    )
+ 
+    for name in names
+        c      = model_curves[name]
+        Tc     = first(model_crits[name])
+        model_line!(ax, c.T, c.Δh ./ 1e3; name, colors)
+        crit_point!(ax, Tc, 0.0; name, colors)
+    end
+ 
+    exp_scatter!(ax, exp_T, exp_hvap ./ 1e3)
+ 
+    Legend(fig[1,2], ax)
+    return fig
+end
+
+function plot_Pxy(
+    model_curves::Dict;
+    exp_x, exp_p,
+    exp_y    = nothing,
+    T_label  = nothing,
+    size     = (500, 420),
+)
+    names  = collect(keys(model_curves))
+    colors = line_colour(names)
+ 
+    fig = Figure(; size)
+    ax  = Axis(fig[1,1];
+        xlabel = "Composition x, y (mol mol⁻¹)",
+        ylabel = "Pressure / kPa",
+        limits = ((0, 1), nothing),
+        xticks = 0:0.2:1,
+    )
+ 
+    for name in names
+        c   = model_curves[name]
+        col = get(colors, name, PALETTE[1])
+        lines!(ax, c.x, c.p ./ 1e3; color=col, linewidth=LINEWIDTH, label=name)
+        if hasproperty(c, :y)
+            lines!(ax, c.y, c.p ./ 1e3; color=col, linewidth=LINEWIDTH, linestyle=:dash)
+        end
+    end
+ 
+    exp_scatter!(ax, exp_x, exp_p ./ 1e3)
+    if !isnothing(exp_y)
+        exp_scatter!(ax, exp_y, exp_p ./ 1e3; label="")
+    end
+ 
+    if !isnothing(T_label)
+        text!(ax, 0.02, 0.97; text=T_label, align=(:left,:top),
+              space=:relative, fontsize=FONTSIZE-2)
+    end
+ 
+    Legend(fig[1,2], ax)
+    return fig
+end
+
+function plot_binary_property(
+    model_curves::Dict;
+    exp_x, exp_y,
+    xlabel::String,
+    ylabel::String,
+    annotation       = nothing,
+    legend_position  = :rt,
+    size             = (500, 420),
+)
+    names  = collect(keys(model_curves))
+    colors = line_colour(names)
+ 
+    fig = Figure(; size)
+    ax  = Axis(fig[1,1];
+        xlabel = xlabel,
+        ylabel = ylabel,
+        limits = ((0, 1), nothing),
+        xticks = 0:0.2:1,
+    )
+ 
+    for name in names
+        c = model_curves[name]
+        model_line!(ax, c.x, c.y; name, colors)
+    end
+ 
+    exp_scatter!(ax, exp_x, exp_y)
+ 
+    if !isnothing(annotation)
+        halign, valign, tx, ty = if legend_position == :rt
+            (:left, :top, 0.02, 0.97)
+        elseif legend_position == :lt
+            (:left, :top, 0.02, 0.97)
+        elseif legend_position == :rb
+            (:left, :bottom, 0.02, 0.03)
+        else   # :lb
+            (:left, :bottom, 0.02, 0.03)
+        end
+        text!(ax, tx, ty; text=annotation, align=(halign, valign),
+              space=:relative, fontsize=FONTSIZE-2)
+    end
+ 
+    Legend(fig[1,2], ax)
+    return fig
+end
+
+end
