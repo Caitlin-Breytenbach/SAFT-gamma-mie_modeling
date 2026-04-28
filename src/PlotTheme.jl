@@ -38,6 +38,8 @@ function apply_theme!()
             ygridvisible       = false,
             xminorticksvisible = true,
             yminorticksvisible = true,
+            xminorticks        = IntervalsBetween(5),
+            yminorticks        = IntervalsBetween(5),
             xminorticksize     = 3,
             yminorticksize     = 3,
             xticksize          = 5,
@@ -126,7 +128,8 @@ end
 function plot_VLE_envelope(
     model_curves::Dict, model_crits::Dict;
     exp_rhol_T, exp_rhol,
-    exp_rhov_T, exp_rhov,
+    exp_rhov_T = Float64[],
+    exp_rhov = Float64[],
     Tlims = (nothing, nothing),
     size  = (500, 420),
 )
