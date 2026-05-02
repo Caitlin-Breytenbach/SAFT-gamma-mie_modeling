@@ -1,5 +1,8 @@
 using GCIdentifier, ChemicalIdentifiers, Clapeyron
 
+export groups_from_names
+export groups_from_smiles
+
 function groups_from_names(inputs::Vector{String})
     comps = []
 
