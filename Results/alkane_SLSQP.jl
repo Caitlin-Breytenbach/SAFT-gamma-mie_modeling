@@ -9,7 +9,7 @@ using GCIdentifier, ChemicalIdentifiers, Clapeyron, CSV, DataFrames
 
 apply_theme!() 
 
-const param_dir = "../Results/Parameters_testing/"
+const param_dir = "../Results/Parameters/"
 const data_dir = "../Parameter fitting/Data/"
 components = groups_from_smiles(["CC", "CCC","CCCC", "CCCCC", "CCCCCC", "CCCCCCC", "CCCCCCCC", "CCCCCCCCC", "CCCCCCCCCC"])
 comp_names = ["ethane", "propane", "butane", "pentane", "hexane", "heptane", "octane", "nonane", "decane"]
@@ -25,8 +25,8 @@ for i in 1:N
         # param_dir * "assocdata_SAFTgammaMie.csv",
     ])
         model_weighted = load_model(components[i]; userlocations = [
-        param_dir * "singledata_SAFTgammaMie_new.csv",
-        param_dir * "pairdata_SAFTgammaMie_new.csv",
+        param_dir * "singledata_SAFTgammaMie_2nd.csv",
+        param_dir * "pairdata_SAFTgammaMie_2nd.csv",
         # param_dir * "assocdata_SAFTgammaMie.csv",
     ])
     
@@ -35,11 +35,6 @@ for i in 1:N
     Tc_weighted, pc_weighted, vc_weighted = crit_pure(model_weighted)
     
     crits = Dict(
-        "Papaioannou" => (Tc_lit,   pc_lit),
-        "fitted" => (Tc_fitted, pc_fitted),
-        "weighted" => (Tc_weighted, pc_weighted)
-    )
-    crits_full = Dict(
         "Papaioannou" => (Tc_lit,   pc_lit,   vc_lit),
         "fitted" => (Tc_fitted, pc_fitted, vc_fitted),
         "weighted" => (Tc_weighted, pc_weighted, vc_weighted)
@@ -67,7 +62,7 @@ for i in 1:N
         "weighted" => sat_envelope(model_weighted, LinRange(minimum(rhol_sat_exp.T), Tc_weighted, 200))
     )
 
-    fig_vle = plot_VLE_envelope(curves, crits_full;
+    fig_vle = plot_VLE_envelope(curves, crits;
         exp_rhol_T = rhol_sat_exp.T,
         exp_rhol   = rhol_sat_exp.out_rhol,
     )
