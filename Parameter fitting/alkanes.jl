@@ -15,7 +15,7 @@ decane = get_groups_from_smiles("CCCCCCCCCC", SAFTgammaMieGroups) #T_triple = 24
 components = [ethane, propane, pentane, octane, nonane, decane]
 println(components)
 
-method = SHADE(;options=Options(iterations=10, debug=true));
+method = SHADE(;options=Options(debug=true));
 model = SAFTgammaMie(components)
 println("Model built successfully")
 
@@ -25,14 +25,14 @@ toestimate = [
         :indices => (1,1),
         :lower => 200.,
         :upper => 400.,
-        :guess => 250.
+        :guess => 246.9
     ),
     Dict( #epsilon CH2
         :param => :epsilon,
         :indices => (2,2),
         :lower => 200.,
         :upper => 500.,
-        :guess => 470.
+        :guess => 272.8
     ),
     Dict( #sigma CH3
         :param => :sigma,
@@ -41,7 +41,7 @@ toestimate = [
         :factor => 1e-10,
         :lower => 2.,
         :upper => 5.,
-        :guess => 4.
+        :guess => 3.992
     ),
     Dict( #sigma CH2
         :param => :sigma,
@@ -50,21 +50,21 @@ toestimate = [
         :factor => 1e-10,
         :lower => 2.,
         :upper => 5.,
-        :guess => 4.
+        :guess => 3.941
     ),
     Dict( #Sk CH3
         :param => :shapefactor,
         :indices => (1,1),
         :lower => 0.1,
         :upper => 1.,
-        :guess => 0.5
+        :guess => 0.5996
     ),
     Dict( #Sk CH2
         :param => :shapefactor,
         :indices => (2,2),
         :lower => 0.1,
         :upper => 1.,
-        :guess => 0.2
+        :guess => 0.390
     ),
     Dict( #lambda_r CH3
         :param => :lambda_r,
@@ -72,7 +72,7 @@ toestimate = [
         :recombine => true,
         :lower => 8.,
         :upper => 30.,
-        :guess => 10.
+        :guess => 14.84
     ),
     Dict( #lambda_r CH2
         :param => :lambda_r,
@@ -80,14 +80,14 @@ toestimate = [
         :recombine => true,
         :lower => 8.,
         :upper => 30.,
-        :guess => 20.
+        :guess => 11.59
     ),
     Dict( #epsilon CH3-CH2
         :param => :epsilon,
         :indices => (1,2),
         :lower => 200.,
         :upper => 500.,
-        :guess => 350.
+        :guess => 267.12
     ),
 
 ];
@@ -175,24 +175,24 @@ end
 # end
 
 estimator,objective,initial,upper,lower = Estimation(model,toestimate,[
-"Fitting Data/ethane_rhol.csv", 
-"Fitting Data/propane_rhol.csv", 
-"Fitting Data/pentane_rhol.csv",
-"Fitting Data/octane_rhol.csv", 
-"Fitting Data/nonane_rhol.csv",  
-"Fitting Data/decane_rhol.csv",
-"Fitting Data/ethane_sat_p.csv", 
-"Fitting Data/propane_sat_p.csv", 
-"Fitting Data/pentane_sat_p.csv",
-"Fitting Data/octane_sat_p.csv", 
-"Fitting Data/nonane_sat_p.csv",  
-"Fitting Data/decane_sat_p.csv",
-"Fitting Data/ethane_sat_rhol.csv", 
-"Fitting Data/propane_sat_rhol.csv", 
-"Fitting Data/pentane_sat_rhol.csv",
-"Fitting Data/octane_sat_rhol.csv", 
-"Fitting Data/nonane_sat_rhol.csv",  
-"Fitting Data/decane_sat_rhol.csv"
+"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/ethane_rhol.csv", 
+"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/propane_rhol.csv", 
+"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/pentane_rhol.csv",
+"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/octane_rhol.csv", 
+"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/nonane_rhol.csv",  
+"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/decane_rhol.csv",
+"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/ethane_sat_p.csv", 
+"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/propane_sat_p.csv", 
+"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/pentane_sat_p.csv",
+"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/octane_sat_p.csv", 
+"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/nonane_sat_p.csv",  
+"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/decane_sat_p.csv",
+"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/ethane_sat_rhol.csv", 
+"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/propane_sat_rhol.csv", 
+"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/pentane_sat_rhol.csv",
+"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/octane_sat_rhol.csv", 
+"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/nonane_sat_rhol.csv",  
+"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/decane_sat_rhol.csv"
 ],[:vrmodel]);
 
 println("Estimator built. Starting optimization")

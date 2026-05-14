@@ -7,7 +7,7 @@ cyclohexane = get_groups_from_name("cyclohexane", SAFTgammaMieGroups; check=true
 # two_methylcyclohexanol = get_groups_from_name("2-methylcyclohexanol", SAFTgammaMieGroups; check=true)
 # menthol = get_groups_from_name("menthol", SAFTgammaMieGroups; check=true)
 components = [cyclohexanol, cyclohexane]
-method = SHADE(;options=Options(iterations=10, debug=true));
+method = SHADE(;options=Options(iterations=500, debug=true));
 model = SAFTgammaMie(components)
 println("Model built successfully")
 # println(components)
@@ -150,15 +150,15 @@ end
 #     end
 # end
 
-estimator,objective,initial,upper,lower = Estimation(model,toestimate,[#"Fitting Data/cyclohexanol-cyclohexane_speed_of_sound.csv",
-"Fitting Data/cyclohexanol-cyclohexane_density.csv", 
-"Fitting Data/cyclohexanol-cyclohexane_Pxy.csv", 
-# "Fitting Data/cyclohexanol-cyclohexane_Txy.csv",
-"Fitting Data/cyclohexanol_sat_rhol.csv", 
-"Fitting Data/cyclohexanol-cyclohexane_excess_enthalpy.csv",  
-"Fitting Data/cyclohexanol_sat_rhov.csv",
-"Fitting Data/cyclohexanol_sat_p.csv", 
-"Fitting Data/cyclohexanol_enthalpy.csv"
+estimator,objective,initial,upper,lower = Estimation(model,toestimate,[#"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/cyclohexanol-cyclohexane_speed_of_sound.csv",
+(1.,"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/cyclohexanol-cyclohexane_density.csv"), 
+(1.,"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/cyclohexanol-cyclohexane_Pxy.csv"), 
+# "C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/cyclohexanol-cyclohexane_Txy.csv",
+(1.,"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/cyclohexanol_sat_rhol.csv"), 
+(0.4,"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/cyclohexanol-cyclohexane_excess_enthalpy.csv"),  
+(1.,"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/cyclohexanol_sat_rhov.csv"),
+(1.,"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/cyclohexanol_sat_p.csv"), 
+(0.4,"C:/Users/jhbre/Downloads/masters/SAFT-gamma-mie_modeling/Parameter fitting/Data/cyclohexanol_enthalpy.csv")
 ],[:vrmodel]);
 
 println("Estimator built. Starting optimization")
