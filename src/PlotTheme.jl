@@ -3,7 +3,7 @@ module PlotTheme
 using CairoMakie, Colors
  
 export apply_theme!, PALETTE, line_colour, EXP_COLOR, LINEWIDTH, MARKERSIZE, FONTSIZE
-export plot_saturation_pressure, plot_VLE_envelope, plot_enthalpy_vap
+export plot_saturation_pressure, plot_VLE_envelope, plot_enthalpy_vap, plot_rhol
 export plot_Pxy, plot_binary_property
 export exp_scatter!, model_line!, crit_point!
 
@@ -20,6 +20,7 @@ const EXP_COLOR  = colorant"#222222"
 const LINEWIDTH  = 2.0
 const MARKERSIZE = 10.0
 const FONTSIZE   = 14
+const MARKERS = [:circle, :rect, :diamond, :utriangle, :dtriangle, :pentagon, :hexagon, :star5]
 
 function line_colour(names::Vector{String})
     Dict(name => PALETTE[mod1(i, length(PALETTE))] for (i, name) in enumerate(names))    
@@ -269,6 +270,58 @@ function plot_binary_property(
     end
  
     Legend(fig[1,2], ax)
+    return fig
+end
+
+
+function plot_rhol(
+    model_curves::Dict;
+    exp_T, exp_p, exp_rho,
+    size  = (500, 420),
+)
+    names  = collect(keys(model_curves))
+    colors = line_colour(names)
+ 
+    fig = Figure(; size)
+    ax  = Axis(fig[1,1];
+        xlabel = "Pressure / kPa",
+        ylabel = "Density / (mol m⁻³)",
+    )
+
+    all_t = sort(unique(exp_T))
+    n_T = length(all_t)
+    temp_marker = Dict(T => MARKERS[mod1(k, length(MARKERS))] for (k, T) in enumerate(all_t))
+
+    for T_val in all_t
+        mask = exp_T .== T_val
+        scatter!(ax, exp_p[mask] ./1e3, exp_rho[mask];
+            color = EXP_COLOR,
+            marker = temp_marker[T_val],
+            markersize = MARKERSIZE,
+            strokewidth = 1.0,
+            strokecolor = :black,
+            label = "$(round(Int, T_val)) K",
+            )
+        
+    end
+ 
+    for name in names
+        c          = model_curves[name]
+        col        = get(colors, name, PALETTE[1])
+        for T_val in all_t
+            mask = c.T_vals .== T_val
+            p_sorted = c.p_vals[mask]
+            rho_sorted = c.rho_vals[mask]
+            idx = sortperm(p_sorted)
+            lines!(ax, p_sorted[idx] ./1e3, rho_sorted[idx];
+                color = col,
+                linewidth = LINEWIDTH,
+                label = name,
+                ) 
+        end
+    end
+ 
+    Legend(fig[1,2], ax; merge=true, unique=true)
     return fig
 end
 

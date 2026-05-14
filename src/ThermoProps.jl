@@ -144,3 +144,15 @@ function binary_u(model::EoSModel, x::Real, p::Real, T::Real)
         return NaN
     end
 end
+
+function rhol_curve(model, df)
+        T_vals   = Float64[]
+        p_vals   = Float64[]
+        rho_vals = Float64[]
+        for row in eachrow(df)
+            push!(T_vals,   row.T)
+            push!(p_vals,   row.p)
+            push!(rho_vals, rhol(model, row.T, row.p))
+        end
+        return (T_vals=T_vals, p_vals=p_vals, rho_vals=rho_vals)
+    end
