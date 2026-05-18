@@ -83,8 +83,8 @@ for i in 1:N
 
     # save("$(name)_rhol_vs_pressure.png", fig_rhol; px_per_unit=3)
 
-    rho_sat_lit = 1/(sat_envelope(model_lit, P_exp.T)[3])
-    rho_sat_fitted = 1/(sat_envelope(model_fitted, P_exp.T)[3])
+    rho_sat_lit = 1 ./(sat_envelope(model_lit, P_exp.T).vl)
+    rho_sat_fitted = 1 ./(sat_envelope(model_fitted, P_exp.T).vl)
     rho_sat = rhol_sat_exp.out_rhol
 
     println("rho sat done")
@@ -92,8 +92,8 @@ for i in 1:N
     AAD_rho_lit = AAD(rho_sat_lit, rho_sat)
     AAD_rho_fitted = AAD(rho_sat_fitted, rho_sat)
 
-    p_sat_lit = sat_envelope(model_lit, P_exp.T)[2]
-    p_sat_fitted = sat_envelope(model_fitted, P_exp.T)[2]
+    p_sat_lit = sat_envelope(model_lit, P_exp.T).p
+    p_sat_fitted = sat_envelope(model_fitted, P_exp.T).p
     p_sat = P_exp.out_P 
 
     println("p sat done")
@@ -103,13 +103,13 @@ for i in 1:N
 
     rhol_lit = rhol_curve(model_lit, rhol_exp)
     rhol_fitted = rhol_curve(model_fitted, rhol_exp)
-    rhol = rhol_exp.out_rhol
+    rhol_exp_vals = rhol_exp.out_rhol
 
-    AAD_rhol_lit = AAD(rhol_lit, rhol)
-    AAD_rhol_fitted = AAD(rhol_fitted, rhol)
+    AAD_rhol_lit = AAD(rhol_lit.rho_vals, rhol_exp_vals)
+    AAD_rhol_fitted = AAD(rhol_fitted.rho_vals, rhol_exp_vals)
 
     println("rhol done")
-    
+
     results = DataFrame(
         Property = ["Saturated Pressure", "Saturated liquid density", "liquid density"],
         AAD_lit = [AAD_p_lit, AAD_rho_lit, AAD_rhol_lit],
