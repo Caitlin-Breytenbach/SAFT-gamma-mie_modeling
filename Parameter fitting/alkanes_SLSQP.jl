@@ -4,20 +4,13 @@ println("Working directory: ", pwd())
 
 include("../src/components.jl")
 include("../src/ThermoProps.jl")
-include("../src/optimiser.jl")
+include("../src/optimizer.jl")
 
 using NLopt, Clapeyron
 components = groups_from_smiles(["CC", "CCC", "CCCC", "CCCCC", "CCCCCC", "CCCCCCC","CCCCCCCC", "CCCCCCCCC", "CCCCCCCCCC"])
 model = load_model(components)
 
-toestimate = [
-    Dict( #epsilon CH3
-        :param => :epsilon,
-        :indices => (1,1),
-        :lower => 200.,
-        :upper => 400.,
-        :guess => 250.
-    ),
+toestimate = [    
     Dict( #epsilon CH2
         :param => :epsilon,
         :indices => (2,2),
@@ -25,14 +18,12 @@ toestimate = [
         :upper => 500.,
         :guess => 470.
     ),
-    Dict( #sigma CH3
-        :param => :sigma,
+    Dict( #epsilon CH3
+        :param => :epsilon,
         :indices => (1,1),
-        :recombine => true,
-        :factor => 1e-10,
-        :lower => 2.,
-        :upper => 5.,
-        :guess => 4.
+        :lower => 200.,
+        :upper => 400.,
+        :guess => 250.
     ),
     Dict( #sigma CH2
         :param => :sigma,
@@ -42,13 +33,15 @@ toestimate = [
         :lower => 2.,
         :upper => 5.,
         :guess => 4.8
-    ),
-    Dict( #Sk CH3
-        :param => :shapefactor,
+    ),    
+    Dict( #sigma CH3
+        :param => :sigma,
         :indices => (1,1),
-        :lower => 0.1,
-        :upper => 1.,
-        :guess => 0.5
+        :recombine => true,
+        :factor => 1e-10,
+        :lower => 2.,
+        :upper => 5.,
+        :guess => 4.
     ),
     Dict( #Sk CH2
         :param => :shapefactor,
@@ -57,13 +50,12 @@ toestimate = [
         :upper => 1.,
         :guess => 0.2
     ),
-    Dict( #lambda_r CH3
-        :param => :lambda_r,
+    Dict( #Sk CH3
+        :param => :shapefactor,
         :indices => (1,1),
-        :recombine => true,
-        :lower => 8.,
-        :upper => 30.,
-        :guess => 10.
+        :lower => 0.1,
+        :upper => 1.,
+        :guess => 0.5
     ),
     Dict( #lambda_r CH2
         :param => :lambda_r,
@@ -72,6 +64,14 @@ toestimate = [
         :lower => 8.,
         :upper => 30.,
         :guess => 20.
+    ),
+    Dict( #lambda_r CH3
+        :param => :lambda_r,
+        :indices => (1,1),
+        :recombine => true,
+        :lower => 8.,
+        :upper => 30.,
+        :guess => 10.
     ),
     Dict( #epsilon CH3-CH2
         :param => :epsilon,
@@ -116,8 +116,20 @@ estimator, objective, initial, upper, lower = Estimation(model, toestimate, [
     (1., data("decane_sat_rhol.csv"))
 ], [:vrmodel])
 
-println("Estimator loaded successfully")
+n = length(initial)
+f0 = objective(initial)
+println(
+"Numeber parameters: $n
+Initial guess: $initial
+Lower bounds: $lower
+Upper bounds: $upper
+objective: $(round(f0; digits = 5))"
+)
 
-model_opt = optimiser(estimator,objective,initial,upper,lower)
-export_model(model_opt)
+params_lit = [473.39, 256.77,  4.8801, 4.0772, 0.22932, 0.57255, 19.871, 15.050, 350.77]
+f_lit = objective(params_lit)
+println("Objective lit: $f_lit")
+
+model_opt = optimizer(estimator,objective,initial,upper,lower)
+# export_model(model_opt)
 

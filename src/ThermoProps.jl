@@ -24,6 +24,18 @@ function saturation_p(model::EoSModel, T::Real)
     end
 end
 
+function sat_p_plot(model, exp_data, crits)
+    T_min = minimum(exp_data.T) 
+    Tc = crits[1]
+    sat_p = zeros(N)
+    T = LinRange(T_min, Tc, 100)
+    N = length(T)
+    for i in 1:N
+        sat_p[i] = saturation_p(model, T[i])
+    end
+    return T, sat_p
+end
+
 function saturation_rhol(model::EoSModel, T::Real)
     try
         return 1.0 / saturation_pressure(model, T)[2]
@@ -38,6 +50,19 @@ function saturation_rhov(model::EoSModel, T::Real)
     catch
         return NaN
     end
+end
+
+function sat_rho_plot(model, exp_data, crits)
+    T_min = minimum(exp_data.T) 
+    Tc = crits[1]
+    sat_rho = zeros(N)
+    T = LinRange(T_min, Tc, 100)
+    N = length(T)
+    for i in 1:N
+        sat_rhol[i] = saturation_rhol(model, T[i])
+        sat_rhov[i] = saturation_rhov(model, T[i])
+    end
+    return T, sat_rhol, sat_rhov
 end
 
 function en_vap(model::EoSModel, T::Real)
@@ -83,6 +108,18 @@ function rhol(model::EoSModel, T::Real, p::Real)
     catch
         return NaN
     end
+end
+
+function rhol_curve(model, exp_data)
+    T_vals   = Float64[]
+    p_vals   = Float64[]
+    rho_vals = Float64[]
+    for row in eachrow(exp_data)
+        push!(T_vals,   row.T)
+        push!(p_vals,   row.p)
+        push!(rho_vals, rhol(model, row.T, row.p))
+    end
+    return (T_vals=T_vals, p_vals=p_vals, rho_vals=rho_vals)
 end
 
 function bubble_p(model::EoSModel, x::Real, T::Real)
@@ -145,14 +182,3 @@ function binary_u(model::EoSModel, x::Real, p::Real, T::Real)
     end
 end
 
-function rhol_curve(model, df)
-        T_vals   = Float64[]
-        p_vals   = Float64[]
-        rho_vals = Float64[]
-        for row in eachrow(df)
-            push!(T_vals,   row.T)
-            push!(p_vals,   row.p)
-            push!(rho_vals, rhol(model, row.T, row.p))
-        end
-        return (T_vals=T_vals, p_vals=p_vals, rho_vals=rho_vals)
-    end
