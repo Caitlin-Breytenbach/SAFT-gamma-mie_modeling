@@ -14,6 +14,7 @@ toestimate = [
     Dict( #epsilon CH2
         :param => :epsilon,
         :indices => (2,2),
+        # :recombine => true,
         :lower => 200.,
         :upper => 500.,
         :guess => 470.
@@ -21,6 +22,7 @@ toestimate = [
     Dict( #epsilon CH3
         :param => :epsilon,
         :indices => (1,1),
+        # :recombine => true,
         :lower => 200.,
         :upper => 400.,
         :guess => 250.
@@ -133,3 +135,13 @@ println("Objective lit: $f_lit")
 model_opt = optimizer(estimator,objective,initial,upper,lower)
 # export_model(model_opt)
 
+final_epsilon  = model_opt.params.epsilon.values
+final_sigma    = model_opt.params.sigma.values
+final_sk       = model_opt.params.shapefactor.values
+final_lambda_r = model_opt.params.lambda_r.values
+
+println(
+"epsilon: $final_epsilon
+sigma: $(final_sigma*1e10)
+shape factor: $final_sk
+lambda_r: $final_lambda_r")
