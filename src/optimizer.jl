@@ -2,8 +2,8 @@ cd(@__DIR__)
 include("../src/ThermoProps.jl")
 
 using NLopt, Clapeyron, FiniteDiff, SqpSolver, JuMP, Ipopt
-export optimiser
-export optimiser_2
+export optimizer
+# export optimiser_2
 
 function optimizer(estimator, objective, initial, upper, lower )
     iter = Ref(0)
@@ -13,7 +13,7 @@ function optimizer(estimator, objective, initial, upper, lower )
         val = objective(x)
 
         iter[] += 1 
-        if iter[] % 10 == 0
+        if iter[] % 10 == 0 || iter[] == 1
             println("Iteration: $(iter[])")
             println("objective: $(round(val; digits = 6))")
             println("parameters: $(round.(x; sigdigits = 5))")
