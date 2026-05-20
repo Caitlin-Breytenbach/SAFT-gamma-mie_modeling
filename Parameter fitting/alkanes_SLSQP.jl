@@ -8,7 +8,7 @@ include("../src/optimizer.jl")
 
 using NLopt, Clapeyron
 components = groups_from_smiles(["CC", "CCC", "CCCC", "CCCCC", "CCCCCC", "CCCCCCC","CCCCCCCC", "CCCCCCCCC", "CCCCCCCCCC"])
-model = load_model(components)
+model = SAFTgammaMie(components)
 
 toestimate = [    
     Dict( #epsilon CH2

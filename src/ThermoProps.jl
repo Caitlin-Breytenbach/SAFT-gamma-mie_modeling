@@ -8,13 +8,6 @@ export binary_density, binary_he, binary_u
 export calc_ADD, calc_percentADD
 export load_model
 
-function load_model(components; userlocations::Vector{String}=String[])
-    if isempty(userlocations)
-        return SAFTgammaMie(components)
-    else
-        return SAFTgammaMie(components; userlocations=userlocations)
-    end
-end
 
 function saturation_p(model::EoSModel, T::Real)
     try
@@ -81,25 +74,17 @@ function sat_envelope(model::EoSModel, T_range::AbstractVector)
     hvap = zeros(N)
  
     for i in 1:N
-        try
-            sat = (i == 1) ?
-                saturation_pressure(model, T_range[i]) :
-                saturation_pressure(model, T_range[i]; v0=[vl[i-1], vv[i-1]])
-            psat[i] = sat[1]
-            vl[i]   = sat[2]
-            vv[i]   = sat[3]
-        catch
-            psat[i] = NaN
-            vl[i]   = (i > 1 && !isnan(vl[i-1])) ? vl[i-1] : NaN
-            vv[i]   = (i > 1 && !isnan(vv[i-1])) ? vv[i-1] : NaN
-        end
+        sat = saturation_pressure(model, T_range[i])
+        psat[i] = sat[1]
+        vl[i]   = sat[2]
+        vv[i]   = sat[3]
         hvap[i] = en_vap(model, T_range[i])
     end
  
     rhol = 1.0 ./ vl
     rhov = 1.0 ./ vv
  
-    return (T=T_range, p=psat, vl=vl, vv=vv, Δh=hvap)
+    return (T=T_range, p=psat, rhol=rhol, rhov=rhov, Δh=hvap)
 end
 
 function rhol(model::EoSModel, T::Real, p::Real)

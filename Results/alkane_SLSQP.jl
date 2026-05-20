@@ -18,13 +18,13 @@ N = length(components)
 for i in 1:N 
     name = comp_names[i]
 
-    model_lit   = load_model(components[i])
-    model_fitted = load_model(components[i]; userlocations = [
+    model_lit   = SAFTgammaMie(components[i])
+    model_fitted = SAFTgammaMie(components[i]; userlocations = [
         param_dir * "singledata_SAFTgammaMie_1st.csv",
         param_dir * "pairdata_SAFTgammaMie_1st.csv",
         # param_dir * "assocdata_SAFTgammaMie.csv",
     ])
-        # model_weighted = load_model(components[i]; userlocations = [
+        # model_weighted = SAFTgammaMie(components[i]; userlocations = [
         # param_dir * "singledata_SAFTgammaMie_2nd.csv",
         # param_dir * "pairdata_SAFTgammaMie_2nd.csv",
         # param_dir * "assocdata_SAFTgammaMie.csv",
