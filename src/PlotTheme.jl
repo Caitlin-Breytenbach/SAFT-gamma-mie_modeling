@@ -148,8 +148,8 @@ function plot_VLE_envelope(
         c          = model_curves[name]
         Tc, pc, vc = model_crits[name]
         col        = get(colors, name, PALETTE[1])
-        lines!(ax, 1e-3 ./ c.vl, c.T; color=col, linewidth=LINEWIDTH, label=name)
-        lines!(ax, 1e-3 ./ c.vv, c.T; color=col, linewidth=LINEWIDTH)
+        lines!(ax, c.rhol .*1e-3, c.T; color=col, linewidth=LINEWIDTH, label=name)
+        lines!(ax, c.rhov .*1e-3, c.T; color=col, linewidth=LINEWIDTH)
         crit_point!(ax, 1e-3/vc, Tc; name, colors)
     end
  
