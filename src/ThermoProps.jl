@@ -1,7 +1,7 @@
 using Clapeyron
  
-export saturation_p, saturation_rhol, saturation_rhov, en_vap
-export sat_envelope
+export saturation_p, saturation_rhol, saturation_rhov, en_vap, Cp, Cv, u
+export sat_envelope, Cp_plot, Cv_plot, u_plot
 export rhol, rhov_compressed
 export bubble_p, dew_p, bubble_t, dew_t
 export binary_density, binary_he, binary_u
@@ -167,3 +167,56 @@ function binary_u(model::EoSModel, x::Real, p::Real, T::Real)
     end
 end
 
+function Cp(model, T, p)
+    z = [1.] 
+    Cp = isobaric_heat_capacity(model, p, T, z)
+    return Cp
+end
+
+function Cp_plot(model, exp_data)
+    T_vals   = Float64[]
+    p_vals   = Float64[]
+    Cp_vals = Float64[]
+    for row in eachrow(exp_data)
+        push!(T_vals,   row.T)
+        push!(p_vals,   row.p)
+        push!(Cp_vals, Cp(model, row.T, row.p))
+    end
+    return (T_vals=T_vals, p_vals=p_vals, Cp_vals=Cp_vals)
+end
+
+function Cv(model, T, p)
+    z = [1.] 
+    Cv = isochoric_heat_capacity(model, p, T, z; phase=:liquid)
+    return Cv
+end
+
+function Cv_plot(model, exp_data)
+    T_vals   = Float64[]
+    p_vals   = Float64[]
+    Cv_vals = Float64[]
+    for row in eachrow(exp_data)
+        push!(T_vals,   row.T)
+        push!(p_vals,   row.p)
+        push!(Cv_vals, Cv(model, row.T, row.p))
+    end
+    return (T_vals=T_vals, p_vals=p_vals, Cv_vals=Cv_vals)
+end
+
+function u(model, T, p)
+    z = [1.] 
+    u = speed_of_sound(model, p, T, z; phase=:liquid) 
+    return u
+end
+
+function u_plot(model, exp_data)
+    T_vals   = Float64[]
+    p_vals   = Float64[]
+    u_vals = Float64[]
+    for row in eachrow(exp_data)
+        push!(T_vals,   row.T)
+        push!(p_vals,   row.p)
+        push!(u_vals, u(model, row.T, row.p))
+    end
+    return (T_vals=T_vals, p_vals=p_vals, u_vals=u_vals)
+end

@@ -3,7 +3,7 @@ module PlotTheme
 using CairoMakie, Colors
  
 export apply_theme!, PALETTE, line_colour, EXP_COLOR, LINEWIDTH, MARKERSIZE, FONTSIZE
-export plot_saturation_pressure, plot_VLE_envelope, plot_enthalpy_vap, plot_rhol
+export plot_saturation_pressure, plot_VLE_envelope, plot_enthalpy_vap, plot_rhol, plot_Cp, plot_Cv, plot_u
 export plot_Pxy, plot_binary_property
 export exp_scatter!, model_line!, crit_point!
 
@@ -314,6 +314,159 @@ function plot_rhol(
             rho_sorted = c.rho_vals[mask]
             idx = sortperm(p_sorted)
             lines!(ax, p_sorted[idx] ./1e3, rho_sorted[idx];
+                color = col,
+                linewidth = LINEWIDTH,
+                label = name,
+                ) 
+        end
+    end
+ 
+    Legend(fig[1,2], ax; merge=true, unique=true)
+    return fig
+end
+
+function plot_Cp(
+    model_curves::Dict;
+    exp_T, exp_p, exp_Cp,
+    size  = (500, 420),
+)
+    names  = collect(keys(model_curves))
+    colors = line_colour(names)
+ 
+    fig = Figure(; size)
+    ax  = Axis(fig[1,1];
+        xlabel = "Temperature / K",
+        ylabel = "Cp / (J mol⁻¹ K⁻¹)",
+    )
+
+    all_p = sort(unique(exp_p))
+    n_p = length(all_p)
+    press_marker = Dict(P => MARKERS[mod1(k, length(MARKERS))] for (k, P) in enumerate(all_p))
+
+    for p_val in all_p
+        mask = exp_p .== p_val
+        scatter!(ax, exp_T[mask], exp_Cp[mask];
+            color = EXP_COLOR,
+            marker = press_marker[p_val],
+            markersize = MARKERSIZE,
+            strokewidth = 1.0,
+            strokecolor = :black,
+            label = "$(round(Int, p_val/1e3)) kPa",
+            )
+        
+    end
+ 
+    for name in names
+        c          = model_curves[name]
+        col        = get(colors, name, PALETTE[1])
+        for p_val in all_p
+            mask = c.p_vals .== p_val
+            T_sorted = c.T_vals[mask]
+            Cp_sorted = c.Cp_vals[mask]
+            idx = sortperm(T_sorted)
+            lines!(ax, T_sorted[idx], Cp_sorted[idx];
+                color = col,
+                linewidth = LINEWIDTH,
+                label = name,
+                ) 
+        end
+    end
+ 
+    Legend(fig[1,2], ax; merge=true, unique=true)
+    return fig
+end
+
+function plot_Cv(
+    model_curves::Dict;
+    exp_T, exp_p, exp_Cv,
+    size  = (500, 420),
+)
+    names  = collect(keys(model_curves))
+    colors = line_colour(names)
+ 
+    fig = Figure(; size)
+    ax  = Axis(fig[1,1];
+        xlabel = "Temperature / K",
+        ylabel = "Cv / (J mol⁻¹ K⁻¹)",
+    )
+
+    all_p = sort(unique(exp_p))
+    n_p = length(all_p)
+    press_marker = Dict(P => MARKERS[mod1(k, length(MARKERS))] for (k, P) in enumerate(all_p))
+
+    for p_val in all_p
+        mask = exp_p .== p_val
+        scatter!(ax, exp_T[mask], exp_Cv[mask];
+            color = EXP_COLOR,
+            marker = press_marker[p_val],
+            markersize = MARKERSIZE,
+            strokewidth = 1.0,
+            strokecolor = :black,
+            label = "$(round(Int, p_val/1e3)) kPa",
+            )
+        
+    end
+ 
+    for name in names
+        c          = model_curves[name]
+        col        = get(colors, name, PALETTE[1])
+        for p_val in all_p
+            mask = c.p_vals .== p_val
+            T_sorted = c.T_vals[mask]
+            Cv_sorted = c.Cv_vals[mask]
+            idx = sortperm(T_sorted)
+            lines!(ax, T_sorted[idx], Cv_sorted[idx];
+                color = col,
+                linewidth = LINEWIDTH,
+                label = name,
+                ) 
+        end
+    end
+ 
+    Legend(fig[1,2], ax; merge=true, unique=true)
+    return fig
+end
+
+function plot_u(
+    model_curves::Dict;
+    exp_T, exp_p, exp_u,
+    size  = (500, 420),
+)
+    names  = collect(keys(model_curves))
+    colors = line_colour(names)
+ 
+    fig = Figure(; size)
+    ax  = Axis(fig[1,1];
+        xlabel = "Temperature / K",
+        ylabel = "u / (m s⁻¹)",
+    )
+
+    all_p = sort(unique(exp_p))
+    n_p = length(all_p)
+    press_marker = Dict(P => MARKERS[mod1(k, length(MARKERS))] for (k, P) in enumerate(all_p))
+
+    for p_val in all_p
+        mask = exp_p .== p_val
+        scatter!(ax, exp_T[mask], exp_u[mask];
+            color = EXP_COLOR,
+            marker = press_marker[p_val],
+            markersize = MARKERSIZE,
+            strokewidth = 1.0,
+            strokecolor = :black,
+            label = "$(round(Int, p_val/1e3)) kPa",
+            )
+        
+    end
+ 
+    for name in names
+        c          = model_curves[name]
+        col        = get(colors, name, PALETTE[1])
+        for p_val in all_p
+            mask = c.p_vals .== p_val
+            T_sorted = c.T_vals[mask]
+            u_sorted = c.u_vals[mask]
+            idx = sortperm(T_sorted)
+            lines!(ax, T_sorted[idx], u_sorted[idx];
                 color = col,
                 linewidth = LINEWIDTH,
                 label = name,
