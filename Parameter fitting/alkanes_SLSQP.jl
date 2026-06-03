@@ -6,11 +6,20 @@ include("../src/components.jl")
 include("../src/ThermoProps.jl")
 include("../src/optimizer.jl")
 
-using NLopt, Clapeyron
+using NLopt, Clapeyron, CSV, DataFrames
 components = groups_from_smiles(["CC", "CCC", "CCCC", "CCCCC", "CCCCCC", "CCCCCCC","CCCCCCCC", "CCCCCCCCC", "CCCCCCCCCC"])
 model = SAFTgammaMie(components)
 
-toestimate = [    
+toestimate = [  
+    Dict( #epsilon CH3
+        :param => :epsilon,
+        :indices => (1,1),
+        # :recombine => true,
+        :lower => 200.,
+        :upper => 400.,
+        :guess => 250.
+    ),  
+
     Dict( #epsilon CH2
         :param => :epsilon,
         :indices => (2,2),
@@ -19,23 +28,7 @@ toestimate = [
         :upper => 500.,
         :guess => 470.
     ),
-    Dict( #epsilon CH3
-        :param => :epsilon,
-        :indices => (1,1),
-        # :recombine => true,
-        :lower => 200.,
-        :upper => 400.,
-        :guess => 250.
-    ),
-    Dict( #sigma CH2
-        :param => :sigma,
-        :indices => (2,2),
-        :recombine => true,
-        :factor => 1e-10,
-        :lower => 2.,
-        :upper => 5.,
-        :guess => 4.8
-    ),    
+
     Dict( #sigma CH3
         :param => :sigma,
         :indices => (1,1),
@@ -45,13 +38,17 @@ toestimate = [
         :upper => 5.,
         :guess => 4.
     ),
-    Dict( #Sk CH2
-        :param => :shapefactor,
+
+    Dict( #sigma CH2
+        :param => :sigma,
         :indices => (2,2),
-        :lower => 0.15,
-        :upper => 1.,
-        :guess => 0.2
-    ),
+        :recombine => true,
+        :factor => 1e-10,
+        :lower => 2.,
+        :upper => 5.,
+        :guess => 4.8
+    ), 
+    
     Dict( #Sk CH3
         :param => :shapefactor,
         :indices => (1,1),
@@ -59,14 +56,15 @@ toestimate = [
         :upper => 1.,
         :guess => 0.5
     ),
-    Dict( #lambda_r CH2
-        :param => :lambda_r,
+
+    Dict( #Sk CH2
+        :param => :shapefactor,
         :indices => (2,2),
-        :recombine => true,
-        :lower => 8.,
-        :upper => 30.,
-        :guess => 20.
+        :lower => 0.15,
+        :upper => 1.,
+        :guess => 0.2
     ),
+
     Dict( #lambda_r CH3
         :param => :lambda_r,
         :indices => (1,1),
@@ -75,6 +73,16 @@ toestimate = [
         :upper => 30.,
         :guess => 10.
     ),
+    
+    Dict( #lambda_r CH2
+        :param => :lambda_r,
+        :indices => (2,2),
+        :recombine => true,
+        :lower => 8.,
+        :upper => 30.,
+        :guess => 20.
+    ),
+
     Dict( #epsilon CH3-CH2
         :param => :epsilon,
         :indices => (1,2),
@@ -115,7 +123,16 @@ estimator, objective, initial, upper, lower = Estimation(model, toestimate, [
     (1., data("hexane_sat_rhol.csv")),
     (1., data("octane_sat_rhol.csv")), 
     (1., data("nonane_sat_rhol.csv")),  
-    (1., data("decane_sat_rhol.csv"))
+    (1., data("decane_sat_rhol.csv")),
+    (1., data("ethane_sat_rhov.csv")), 
+    (1., data("propane_sat_rhov.csv")), 
+    (1., data("butane_sat_rhov.csv")),
+    (1., data("pentane_sat_rhov.csv")),
+    (1., data("heptane_sat_rhov.csv")),
+    (1., data("hexane_sat_rhov.csv")),
+    (1., data("octane_sat_rhov.csv")), 
+    (1., data("nonane_sat_rhov.csv")),  
+    (1., data("decane_sat_rhov.csv"))
 ], [:vrmodel])
 
 n = length(initial)
@@ -133,7 +150,7 @@ f_lit = objective(params_lit)
 println("Objective lit: $f_lit")
 
 model_opt = optimizer(estimator,objective,initial,upper,lower)
-# export_model(model_opt)
+export_model(model_opt)
 
 final_epsilon  = model_opt.params.epsilon.values
 final_sigma    = model_opt.params.sigma.values
