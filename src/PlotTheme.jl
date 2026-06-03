@@ -3,7 +3,7 @@ module PlotTheme
 using CairoMakie, Colors
  
 export apply_theme!, PALETTE, line_colour, EXP_COLOR, LINEWIDTH, MARKERSIZE, FONTSIZE
-export plot_saturation_pressure, plot_VLE_envelope, plot_enthalpy_vap, plot_rhol, plot_Cp, plot_Cv, plot_u
+export plot_saturation_pressure, plot_VLE_envelope, plot_enthalpy_vap, plot_rhol, plot_Cp, plot_Cv_isobaric, plot_Cv_isothermal, plot_u
 export plot_Pxy, plot_binary_property
 export exp_scatter!, model_line!, crit_point!
 
@@ -284,23 +284,23 @@ function plot_rhol(
  
     fig = Figure(; size)
     ax  = Axis(fig[1,1];
-        xlabel = "Pressure / kPa",
+        xlabel = "Temperature / K",
         ylabel = "Density / (mol m⁻³)",
     )
 
-    all_t = sort(unique(exp_T))
-    n_T = length(all_t)
-    temp_marker = Dict(T => MARKERS[mod1(k, length(MARKERS))] for (k, T) in enumerate(all_t))
+    all_p = sort(unique(exp_p))
+    n_p = length(all_p)
+    temp_marker = Dict(p => MARKERS[mod1(k, length(MARKERS))] for (k, p) in enumerate(all_p))
 
-    for T_val in all_t
-        mask = exp_T .== T_val
-        scatter!(ax, exp_p[mask] ./1e3, exp_rho[mask];
+    for p_val in all_p
+        mask = exp_p .== p_val
+        scatter!(ax, exp_T[mask], exp_rho[mask];
             color = EXP_COLOR,
-            marker = temp_marker[T_val],
+            marker = temp_marker[p_val],
             markersize = MARKERSIZE,
             strokewidth = 1.0,
             strokecolor = :black,
-            label = "$(round(Int, T_val)) K",
+            label = "$(round(Int, p_val)/1e6) MPa",
             )
         
     end
@@ -308,12 +308,12 @@ function plot_rhol(
     for name in names
         c          = model_curves[name]
         col        = get(colors, name, PALETTE[1])
-        for T_val in all_t
-            mask = c.T_vals .== T_val
-            p_sorted = c.p_vals[mask]
+        for p_val in all_p
+            mask = c.p_vals .== p_val
+            T_sorted = c.T_vals[mask]
             rho_sorted = c.rho_vals[mask]
-            idx = sortperm(p_sorted)
-            lines!(ax, p_sorted[idx] ./1e3, rho_sorted[idx];
+            idx = sortperm(T_sorted)
+            lines!(ax, T_sorted[idx], rho_sorted[idx];
                 color = col,
                 linewidth = LINEWIDTH,
                 label = name,
@@ -376,7 +376,7 @@ function plot_Cp(
     return fig
 end
 
-function plot_Cv(
+function plot_Cv_isobaric(
     model_curves::Dict;
     exp_T, exp_p, exp_Cv,
     size  = (500, 420),
@@ -416,6 +416,57 @@ function plot_Cv(
             Cv_sorted = c.Cv_vals[mask]
             idx = sortperm(T_sorted)
             lines!(ax, T_sorted[idx], Cv_sorted[idx];
+                color = col,
+                linewidth = LINEWIDTH,
+                label = name,
+                ) 
+        end
+    end
+ 
+    Legend(fig[1,2], ax; merge=true, unique=true)
+    return fig
+end
+
+function plot_Cv_isothermal(
+    model_curves::Dict;
+    exp_T, exp_p, exp_Cv,
+    size  = (500, 420),
+)
+    names  = collect(keys(model_curves))
+    colors = line_colour(names)
+ 
+    fig = Figure(; size)
+    ax  = Axis(fig[1,1];
+        xlabel = "Pressure / MPa",
+        ylabel = "Cv / (J mol⁻¹ K⁻¹)",
+    )
+
+    all_T = sort(unique(exp_T))
+    n_T = length(all_T)
+    press_marker = Dict(T => MARKERS[mod1(k, length(MARKERS))] for (k, T) in enumerate(all_T))
+
+    for T_val in all_T
+        mask = exp_T .== T_val
+        scatter!(ax, exp_p[mask], exp_Cv[mask];
+            color = EXP_COLOR,
+            marker = press_marker[T_val],
+            markersize = MARKERSIZE,
+            strokewidth = 1.0,
+            strokecolor = :black,
+            label = "$(round(Int, T_val)) K",
+            )
+        
+    end
+ 
+    for name in names
+        c          = model_curves[name]
+        col        = get(colors, name, PALETTE[1])
+        for T_val in all_T
+            mask = c.T_vals .== T_val
+            p_sorted = c.p_vals[mask]
+            Cv_sorted = c.Cv_vals[mask]
+            idx = sortperm(p_sorted)
+            lines!(ax, p_sorted[idx], Cv_sorted[idx];
                 color = col,
                 linewidth = LINEWIDTH,
                 label = name,

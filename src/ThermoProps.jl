@@ -187,7 +187,7 @@ end
 
 function Cv(model, T, p)
     z = [1.] 
-    Cv = isochoric_heat_capacity(model, p, T, z; phase=:liquid)
+    Cv = isochoric_heat_capacity(model, p, T, z)
     return Cv
 end
 
@@ -203,9 +203,9 @@ function Cv_plot(model, exp_data)
     return (T_vals=T_vals, p_vals=p_vals, Cv_vals=Cv_vals)
 end
 
-function u(model, T, p)
+function u(model::EoSModel, T::Real, p::Real)
     z = [1.] 
-    u = speed_of_sound(model, p, T, z; phase=:liquid) 
+    u = speed_of_sound(model, p, T, z) 
     return u
 end
 
