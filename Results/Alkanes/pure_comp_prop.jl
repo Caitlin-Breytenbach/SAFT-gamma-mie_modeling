@@ -1,8 +1,8 @@
 cd(@__DIR__)
-include("../src/PlotTheme.jl")
-include("../src/ThermoProps.jl")
-include("../src/components.jl")
-include("../src/AAD_calc.jl")
+include("../../src/PlotTheme.jl")
+include("../../src/ThermoProps.jl")
+include("../../src/components.jl")
+include("../../src/AAD_calc.jl")
 using .PlotTheme
 using CairoMakie
 using GCIdentifier, ChemicalIdentifiers, Clapeyron, CSV, DataFrames
@@ -11,17 +11,17 @@ apply_theme!()
 
 const param_dir = "../Results/Parameters/"
 const data_dir = "../Parameter fitting/Data/"
-components = groups_from_smiles(["CC"]) #, "CCC","CCCC", "CCCCC", "CCCCCC", "CCCCCCC", "CCCCCCCC", "CCCCCCCCC", "CCCCCCCCCC"])
-comp_names = ["ethane"] #, "propane", "butane", "pentane", "hexane", "heptane", "octane", "nonane", "decane"]
+components = groups_from_smiles(["CC", "CCC","CCCC", "CCCCC", "CCCCCC", "CCCCCCC", "CCCCCCCC", "CCCCCCCCC", "CCCCCCCCCC"])
+comp_names = ["ethane", "propane", "butane", "pentane", "hexane", "heptane", "octane", "nonane", "decane"]
 N = length(components)
 
 for i in 1:N 
     name = comp_names[i]
 
-    model_lit   = SAFTgammaMie(components[i])
+    # model_lit   = SAFTgammaMie(components[i])
     model_fitted = SAFTgammaMie(components[i]; userlocations = [
-        param_dir * "singledata_SAFTgammaMie_1st.csv",
-        param_dir * "pairdata_SAFTgammaMie_1st.csv",
+        param_dir * "singledata_SAFTgammaMie.csv",
+        param_dir * "pairdata_SAFTgammaMie.csv",
         # param_dir * "assocdata_SAFTgammaMie.csv",
     ])
         # model_weighted = SAFTgammaMie(components[i]; userlocations = [
@@ -30,88 +30,89 @@ for i in 1:N
         # param_dir * "assocdata_SAFTgammaMie.csv",
     # ])
     
-    Tc_lit,   pc_lit,   vc_lit   = crit_pure(model_lit)
+    # Tc_lit,   pc_lit,   vc_lit   = crit_pure(model_lit)
     Tc_fitted, pc_fitted, vc_fitted = crit_pure(model_fitted)
     # Tc_weighted, pc_weighted, vc_weighted = crit_pure(model_weighted)
     
     crits = Dict(
-        "Papaioannou" => (Tc_lit,   pc_lit,   vc_lit),
+        # "Papaioannou" => (Tc_lit,   pc_lit,   vc_lit),
         "fitted" => (Tc_fitted, pc_fitted, vc_fitted),
         # "weighted" => (Tc_weighted, pc_weighted, vc_weighted)
     )   
     
     P_exp    = CSV.read(data_dir * "$(name)_sat_p.csv",    DataFrame; header=3)
     rhol_sat_exp = CSV.read(data_dir * "$(name)_sat_rhol.csv", DataFrame; header=3)
+    rhov_sat_exp = CSV.read(data_dir * "$(name)_sat_rhov.csv", DataFrame; header=3)
     rhol_exp = CSV.read(data_dir * "$(name)_rhol.csv", DataFrame; header=3)
-    Cp_exp = CSV.read(data_dir * "$(name)_Cp.csv", DataFrame; header=3)
+    # Cp_exp = CSV.read(data_dir * "$(name)_Cp.csv", DataFrame; header=3)
 
-#     curves = Dict(
-#         "Papaioannou" => sat_envelope(model_lit, vcat(P_exp.T, Tc_lit)),
-#         "fitted" => sat_envelope(model_fitted, vcat(P_exp.T, Tc_fitted)),
-#         "weighted" => sat_envelope(model_weighted, vcat(P_exp.T, Tc_weighted))
-#     )
-
-#     fig_p = plot_saturation_pressure(curves, crits;
-#         exp_T    = P_exp.T,
-#         exp_p    = P_exp.out_P,
-#     )
-#     save("vapour_pressure_$(name).png", fig_p, px_per_unit=3)
-
-#     curves = Dict(
-#         "Papaioannou" => sat_envelope(model_lit, LinRange(minimum(rhol_sat_exp.T), Tc_lit, 200)),
-#         "fitted" => sat_envelope(model_fitted, LinRange(minimum(rhol_sat_exp.T), Tc_fitted, 200)),
-#         "weighted" => sat_envelope(model_weighted, LinRange(minimum(rhol_sat_exp.T), Tc_weighted, 200))
-#     )
-
-#     fig_vle = plot_VLE_envelope(curves, crits;
-#         exp_rhol_T = rhol_sat_exp.T,
-#         exp_rhol   = rhol_sat_exp.out_rhol,
-#     )
-#     save("$(name)_VLE_envelope.png", fig_vle; px_per_unit=3)
-
-
-#     rhol_curves = Dict(
-#         "Papaioannou" => rhol_curve(model_lit,    rhol_exp),
-#         "fitted"      => rhol_curve(model_fitted, rhol_exp),
-#         "weighted"      => rhol_curve(model_weighted, rhol_exp),
-#     )
-
-#     fig_rhol = plot_rhol(rhol_curves;
-#         exp_T   = rhol_exp.T,
-#         exp_p   = rhol_exp.p,
-#         exp_rho = rhol_exp.out_rhol,
-#     )
-
-#     save("$(name)_rhol_vs_pressure.png", fig_rhol; px_per_unit=3)
-
-    Cp_curves = Dict(
-        "Papaioannou" => Cp_plot(model_lit,    Cp_exp),
-        "fitted"      => Cp_plot(model_fitted, Cp_exp),
-        # "weighted"      => Cp_plot(model_weighted, Cp_exp),
+    curves = Dict(
+        # "Papaioannou" => sat_envelope(model_lit, vcat(P_exp.T, Tc_lit)),
+        "fitted" => sat_envelope(model_fitted, vcat(P_exp.T, Tc_fitted)),
+        # "weighted" => sat_envelope(model_weighted, vcat(P_exp.T, Tc_weighted))
     )
 
-    fig_Cp = plot_Cp(Cp_curves;
-        exp_T   = Cp_exp.T,
-        exp_p   = Cp_exp.p,
-        exp_Cp = Cp_exp.out_Cp,
+    fig_p = plot_saturation_pressure(curves, crits;
+        exp_T    = P_exp.T,
+        exp_p    = P_exp.out_p,
+    )
+    save("vapour_pressure_$(name).png", fig_p, px_per_unit=3)
+
+    curves = Dict(
+        # "Papaioannou" => sat_envelope(model_lit, LinRange(minimum(rhol_sat_exp.T), Tc_lit, 200)),
+        "fitted" => sat_envelope(model_fitted, LinRange(minimum(rhol_sat_exp.T), Tc_fitted, 200)),
+        # "weighted" => sat_envelope(model_weighted, LinRange(minimum(rhol_sat_exp.T), Tc_weighted, 200))
     )
 
-    save("$(name)_Cp.png", fig_Cp; px_per_unit=3)
+    fig_vle = plot_VLE_envelope(curves, crits;
+        exp_rhol_T = rhol_sat_exp.T,
+        exp_rhol   = rhol_sat_exp.out_rhol,
+        exp_rhov_T = rhov_sat_exp.T,
+        exp_rhov   = rhov_sat_exp.out_rhov
+    )
+    save("$(name)_VLE_envelope.png", fig_vle; px_per_unit=3)
 
-#     rho_sat_lit = (sat_envelope(model_lit, P_exp.T).rhol)
-#     rho_sat_fitted = (sat_envelope(model_fitted, P_exp.T).rhol)
-#     rho_sat = rhol_sat_exp.out_rhol
 
-#     println("rho sat done")
+    rhol_curves = Dict(
+        # "Papaioannou" => rhol_curve(model_lit,    rhol_exp),
+        "fitted"      => rhol_curve(model_fitted, rhol_exp),
+        # "weighted"      => rhol_curve(model_weighted, rhol_exp),
+    )
 
-#     AAD_rho_lit = AAD(rho_sat_lit, rho_sat)
-#     AAD_rho_fitted = AAD(rho_sat_fitted, rho_sat)
+    fig_rhol = plot_rhol(rhol_curves;
+        exp_T   = rhol_exp.T,
+        exp_p   = rhol_exp.p,
+        exp_rho = rhol_exp.out_rhol,
+    )
 
-#     p_sat_lit = sat_envelope(model_lit, P_exp.T).p
-#     p_sat_fitted = sat_envelope(model_fitted, P_exp.T).p
-#     p_sat = P_exp.out_P 
+    save("$(name)_rhol_vs_pressure.png", fig_rhol; px_per_unit=3)
 
-#     println("p sat done")
+    # Cp_curves = Dict(
+    #     "Papaioannou" => Cp_plot(model_lit,    Cp_exp),
+    #     "fitted"      => Cp_plot(model_fitted, Cp_exp),
+    #     # "weighted"      => Cp_plot(model_weighted, Cp_exp),
+    # )
+
+    # fig_Cp = plot_Cp(Cp_curves;
+    #     exp_T   = Cp_exp.T,
+    #     exp_p   = Cp_exp.p,
+    #     exp_Cp = Cp_exp.out_Cp,
+    # )
+
+    # save("$(name)_Cp.png", fig_Cp; px_per_unit=3)
+
+    # rho_sat_lit = (sat_envelope(model_lit, P_exp.T).rhol)
+    # rho_sat_fitted = (sat_envelope(model_fitted, P_exp.T).rhol)
+    # rho_sat = rhol_sat_exp.out_rhol
+
+
+    # AAD_rho_lit = AAD(rho_sat_lit, rho_sat)
+    # AAD_rho_fitted = AAD(rho_sat_fitted, rho_sat)
+
+    # p_sat_lit = sat_envelope(model_lit, P_exp.T).p
+    # p_sat_fitted = sat_envelope(model_fitted, P_exp.T).p
+    # p_sat = P_exp.out_P 
+
 
 #     # AAD_p_lit = AAD(p_sat_lit, p_sat)
 #     # AAD_p_fitted = AAD(p_sat_fitted, p_sat)
