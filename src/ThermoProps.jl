@@ -5,8 +5,6 @@ export sat_envelope, Cp_plot, Cv_plot, u_plot
 export rhol, rhov_compressed
 export bubble_p, dew_p, bubble_t, dew_t
 export binary_density, binary_he, binary_u
-export calc_ADD, calc_percentADD
-export load_model
 
 
 function saturation_p(model::EoSModel, T::Real)

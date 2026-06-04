@@ -327,9 +327,14 @@ end
 
 function plot_Cp(
     model_curves::Dict;
-    exp_T, exp_p, exp_Cp,
+    exp_T, exp_p, exp_Cp, exp_phase,
     size  = (500, 420),
 )
+    mask = exp_phase .!= "supercritical"
+    exp_T = exp_T[mask]
+    exp_p = exp_p[mask]
+    exp_Cp = exp_Cp[mask]
+    
     names  = collect(keys(model_curves))
     colors = line_colour(names)
  
