@@ -3,9 +3,8 @@ include("../src/ThermoProps.jl")
 
 using NLopt, Clapeyron, FiniteDiff, SqpSolver, JuMP, Ipopt
 export optimizer
-# export optimiser_2
 
-function optimizer(estimator, objective, initial, upper, lower )
+function optimizer(estimator, objective, initial, upper, lower, starts)
     iter = Ref(0)
     function objective_fn(x_norm::Vector, grad::Vector)
 
@@ -49,25 +48,34 @@ function optimizer(estimator, objective, initial, upper, lower )
     )
 
     min_x = @. min_xnorm*(upper - lower) + lower
+
+    for i in 1:starts
+        x0 = @. rand()*(upper - lower) + lower
+        println("Restarting optimization with $(x0)")
+
+        min_f_random, min_xnorm_random, ret_random = run_opt(x0)
+
+        println(
+            """
+            Iterations            : $(iter[])
+            objective value       : $min_f_random
+            solution status       : $ret_random
+            """
+        )
+
+        if min_f_random < min_f
+            min_f = min_f_random
+            min_xnorm = min_xnorm_random
+            min_x = @. min_xnorm*(upper - lower) + lower
+            println("New best solution found with objective value: $min_f")
+        end
+
+        restart[] += 1
+    end
+
+
+
+    println("Optimized parameters: $(round.(min_x; sigdigits=5))")
     model_opt = Clapeyron.return_model(estimator, model, min_x)
     return model_opt
 end
-
-
-# function optimizer_2(estimator, objective, initial, upper, lower)
-#     ipopt_solver = optimizer_with_attributes(
-#     Ipopt.Optimizer,
-#     "print_level" => 0,
-#     "warm_start_init_point" => "yes",
-#     )
-#     optimizer = optimizer_with_attributes(
-#     SqpSolver.Optimizer, 
-#     "external_optimizer" => ipopt_solver,
-#     "max_iter" => 100,
-#     "algorithm" => "SQP-TR",
-#     )
-
-#     sqp_model = Model(optimizer)
-
-
-# end
