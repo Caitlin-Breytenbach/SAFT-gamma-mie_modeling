@@ -16,7 +16,7 @@ function AAD(calc, exp)
 
     AAD_percent_values = zeros(N)
 
-        for i in 1:N 
+    for i in 1:N 
         AAD_percent_values[i] = abs((exp[i] - calc[i])/exp[i])*100      
     end
     AAD_percent = (1/N)*(sum(AAD_percent_values))
