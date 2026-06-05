@@ -69,11 +69,7 @@ function optimizer(estimator, objective, initial, upper, lower, starts)
             min_x = @. min_xnorm*(upper - lower) + lower
             println("New best solution found with objective value: $min_f")
         end
-
-        restart[] += 1
     end
-
-
 
     println("Optimized parameters: $(round.(min_x; sigdigits=5))")
     model_opt = Clapeyron.return_model(estimator, model, min_x)
