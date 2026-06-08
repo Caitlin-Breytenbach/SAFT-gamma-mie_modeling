@@ -102,8 +102,8 @@ toestimate = [
 data(f) = joinpath(@__DIR__, "Data", f)
 
 w1 = w2 = w3 = 1.
-w4 = 0.4
-w5 = 0.4
+w4 = 0.04
+w5 = 0.04
 
 estimator, objective, initial, upper, lower = Estimation(model, toestimate, [
     (w1, data("ethane_rhol.csv")), 
@@ -142,7 +142,7 @@ estimator, objective, initial, upper, lower = Estimation(model, toestimate, [
     (w4, data("octane_sat_rhov.csv")), 
     (w4, data("nonane_sat_rhov.csv")),  
     (w4, data("decane_sat_rhov.csv"))
-]; ignorefield = [:idealmodel, :vrmodel])
+], [:vrmodel])
 
 # println("Estimator: ", estimator)
 
@@ -237,6 +237,42 @@ toestimate = [
         :guess => CH2_epsilon
     ),
 
+    Dict( #sigma CH3
+        :param => :sigma,
+        :indices => (1,1),
+        :recombine => true,
+        :factor => 1e-10,
+        :lower => 2.,
+        :upper => 5.,
+        :guess => CH3_sigma
+    ),
+
+    Dict( #sigma CH2
+        :param => :sigma,
+        :indices => (2,2),
+        :recombine => true,
+        :factor => 1e-10,
+        :lower => 2.,
+        :upper => 5.,
+        :guess => CH2_sigma
+    ), 
+    
+    Dict( #Sk CH3
+        :param => :shapefactor,
+        :indices => (1,1),
+        :lower => 0.1,
+        :upper => 1.,
+        :guess => CH3_sk
+    ),
+
+    Dict( #Sk CH2
+        :param => :shapefactor,
+        :indices => (2,2),
+        :lower => 0.15,
+        :upper => 1.,
+        :guess => CH2_sk
+    ),    
+
     Dict( #lambda_r CH3
         :param => :lambda_r,
         :indices => (1,1),
@@ -310,9 +346,9 @@ estimator, objective, initial, upper, lower = Estimation(model_2, toestimate, [
     (w5, data("octane_Cp.csv")), 
     (w5, data("nonane_Cp.csv")),  
     (w5, data("decane_Cp.csv"))
-]; ignorefield = [:vrmodel, :idealmodel])
+], [:vrmodel])
 
-params_lit = [256.77, 473.39, 15.050, 19.871,  350.77]
+params_lit = [ 256.77, 473.39, 4.0772, 4.8801, 0.57255, 0.22932, 15.050, 19.871,  350.77]
 f_lit = objective(params_lit)
 println("Objective lit: $f_lit")
 
