@@ -108,16 +108,35 @@ end
 function bubble_p(model::EoSModel, x::Real, T::Real)
     try
         bub = bubble_pressure(model, T, [x, 1 - x])
-        return bub[1], bub[4][1]
+        p = bub[1]
+        y = bub[4][1]
+        return p, y
     catch
         return NaN, NaN
     end
 end
 
+function pxy_graph(model::EoSModel, expdata)
+    T_vals = Float64[]
+    x_vals = Float64[]
+    y_vals = Float64[]
+    P_vals = Float64[]
+
+    for row in eachrow(expdata)
+        push!(T_vals, row.T)
+        push!(x_vals, row.x)
+        push!(y_vals, bubble_p(model, row.x, row.T)[1])
+        push!(P_vals, bubble_p(model, row.x, row.T)[2])
+    end
+    return (T = T_vals, x = x_vals, y = y_vals, p = P_vals)
+end
+
 function dew_p(model::EoSModel, y::Real, T::Real)
     try
         dew = dew_pressure(model, T, [y, 1 - y])
-        return dew[1], dew[4][1]
+        P = dew[1]
+        x = dew[4][1]
+        return P, x
     catch
         return NaN, NaN
     end
@@ -126,7 +145,9 @@ end
 function bubble_t(model::EoSModel, x::Real, p::Real)
     try
         bub = bubble_temperature(model, p, [x, 1 - x])
-        return bub[1], bub[4][1]
+        T = bub[1]
+        y = bub[4][1]
+        return T, y
     catch
         return NaN, NaN
     end
@@ -135,7 +156,9 @@ end
 function dew_t(model::EoSModel, y::Real, p::Real)
     try
         dew = dew_temperature(model, p, [y, 1 - y])
-        return dew[1], dew[4][1]
+        T = dew[1]
+        x = dew[4][1]
+        return T, x
     catch
         return NaN, NaN
     end
@@ -167,8 +190,12 @@ end
 
 function Cp(model, T, p)
     z = [1.] 
-    Cp = isobaric_heat_capacity(model, p, T, z)
-    return Cp
+    try
+        Cp = isobaric_heat_capacity(model, p, T, z)
+        return Cp
+    catch
+        return NaN
+    end
 end
 
 function Cp_plot(model, exp_data)
@@ -185,8 +212,11 @@ end
 
 function Cv(model, T, p)
     z = [1.] 
-    Cv = isochoric_heat_capacity(model, p, T, z)
-    return Cv
+    try
+        return isochoric_heat_capacity(model, p, T, z; phase = :liquid)
+    catch
+        return NaN
+    end
 end
 
 function Cv_plot(model, exp_data)
@@ -203,8 +233,12 @@ end
 
 function u(model::EoSModel, T::Real, p::Real)
     z = [1.] 
-    u = speed_of_sound(model, p, T, z) 
-    return u
+    try
+        u = speed_of_sound(model, p, T, z)
+        return u
+    catch
+        return NaN
+    end
 end
 
 function u_plot(model, exp_data)

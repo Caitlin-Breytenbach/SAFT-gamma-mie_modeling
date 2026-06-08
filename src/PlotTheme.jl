@@ -2,7 +2,7 @@ module PlotTheme
  
 using CairoMakie, Colors
  
-export apply_theme!, PALETTE, line_colour, EXP_COLOR, LINEWIDTH, MARKERSIZE, FONTSIZE
+export apply_theme!, PALETTE, line_colour, EXP_COLOR, LINEWIDTH, MARKERSIZE, FONTSIZE, MARKERS
 export plot_saturation_pressure, plot_VLE_envelope, plot_enthalpy_vap, plot_rhol, plot_Cp, plot_Cv_isobaric, plot_Cv_isothermal, plot_u
 export plot_Pxy, plot_binary_property
 export exp_scatter!, model_line!, crit_point!
@@ -92,7 +92,7 @@ function crit_point!(ax, x, y; name::String, colors::Dict, marker=:circle)
 end
 
 function plot_saturation_pressure(
-    model_curves::Dict, model_crits::Dict;
+    model_curves::Dict; model_crits = nothing,
     exp_T, exp_p,
     exp_crit = nothing,
     Tlims    = (nothing, nothing),
@@ -110,9 +110,11 @@ function plot_saturation_pressure(
  
     for name in names
         c      = model_curves[name]
+        if !isnothing(model_crits)
         Tc, pc = model_crits[name]
+        crit_point!(ax, Tc, log10(pc); name, colors)            
+        end
         model_line!(ax, c.T, log10.(c.p); name, colors)
-        crit_point!(ax, Tc, log10(pc); name, colors)
     end
  
     exp_scatter!(ax, exp_T, log10.(exp_p))
@@ -327,14 +329,9 @@ end
 
 function plot_Cp(
     model_curves::Dict;
-    exp_T, exp_p, exp_Cp, exp_phase,
+    exp_T, exp_p, exp_Cp,
     size  = (500, 420),
 )
-    mask = exp_phase .!= "supercritical"
-    exp_T = exp_T[mask]
-    exp_p = exp_p[mask]
-    exp_Cp = exp_Cp[mask]
-    
     names  = collect(keys(model_curves))
     colors = line_colour(names)
  
@@ -383,7 +380,7 @@ end
 
 function plot_Cv_isobaric(
     model_curves::Dict;
-    exp_T, exp_p, exp_Cv,
+    exp_T, exp_p, exp_Cv, 
     size  = (500, 420),
 )
     names  = collect(keys(model_curves))
@@ -534,4 +531,69 @@ function plot_u(
     return fig
 end
 
+function plot_pxy(
+    model_curves::Dict;
+    exp_T, exp_p, exp_x, exp_y,
+    size  = (500, 420),
+)
+    names  = collect(keys(model_curves))
+    colors = line_colour(names)
+ 
+    fig = Figure(; size)
+    ax  = Axis(fig[1,1];
+        xlabel = "x,y",
+        ylabel = "Pressure / (MPa)",
+    )
+
+    all_T = sort(unique(exp_T))
+    n_T = length(all_T)
+    press_marker = Dict(T => MARKERS[mod1(k, length(MARKERS))] for (k, T) in enumerate(all_T))
+
+    for T_val in all_T
+        mask = exp_T .== T_val
+        scatter!(ax, exp_p[mask] ./1e6, exp_x[mask];
+            color = EXP_COLOR,
+            marker = press_marker[T_val],
+            markersize = MARKERSIZE,
+            strokewidth = 1.0,
+            strokecolor = :black,
+            label = "$(round(Int, T_val)) K",
+            )
+        
+            scatter!(ax, exp_p[mask] ./1e6, exp_y[mask];
+            color = EXP_COLOR,
+            marker = press_marker[T_val],
+            markersize = MARKERSIZE,
+            strokewidth = 1.0,
+            strokecolor = :black,
+            label = "$(round(Int, T_val)) K",
+            )
+
+    end
+ 
+    for name in names
+        c          = model_curves[name]
+        col        = get(colors, name, PALETTE[1])
+        for T_val in all_T
+            mask = c.T_vals .== T_val
+            p_sorted = c.p_vals[mask]
+            x_sorted = c.x_vals[mask]
+            y_sorted = c.y_vals[mask]
+            idx = sortperm(p_sorted)
+            lines!(ax, p_sorted[idx], x_sorted[idx];
+                color = col,
+                linewidth = LINEWIDTH,
+                label = name,
+            ) 
+            lines!(ax, p_sorted[idx], y_sorted[idx];
+                color = col,
+                linewidth = LINEWIDTH,
+                label = name,
+            ) 
+        end
+    end
+ 
+    Legend(fig[1,2], ax; merge=true, unique=true)
+    return fig
+end
 end
