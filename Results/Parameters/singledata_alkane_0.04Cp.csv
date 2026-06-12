@@ -1,0 +1,5 @@
+Clapeyron Database File
+SAFTgammaMie Parameters [csvtype = like, grouptype = unknown]
+species,vst,S,lambda_a,lambda_r,sigma,epsilon
+CH3,1,0.5098218801093792,6.0,18.087805028718712,4.265590907095723,294.2342385943777
+CH2,1,0.2236126349680857,6.0,20.738731598132258,4.940661155294301,486.821233938037
